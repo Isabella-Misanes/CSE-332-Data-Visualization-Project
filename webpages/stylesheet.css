@@ -1,11 +1,19 @@
 .chart-title {
-    font-size: 18px;
+    font-size: 14px;
     font-weight: bold;
 }
 
 .x-axis-text {
     transform-origin: 0 0;
     transform: rotate(-90deg);
+}
+
+text.x-axis-label {
+    font-size: 12px;
+}
+
+text.y-axis-label {
+    font-size: 12px;
 }
 
 text.biplot-label {
@@ -25,3 +33,15 @@ path.pca-arrow {
 path.projected-arrow {
     stroke: black;
 }  
+
+body, html {
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+}
+
+.display-container {
+    width: 50vw;
+    height: 50vh;
+    float: left;
+}

@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Project #4</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Project #5</title>
         <link rel="stylesheet" href="stylesheet.css">
     </head>
     <body>
@@ -11,22 +13,9 @@
         </script>
 
         <div class="header">
-            <h1>PROJECT #4</h1>
-            <h3>Isabella Misanes</h3>
+            PROJECT #5<br>
+            Isabella Misanes
         </div>        
-
-        <label for="vars">Select a variable:</label>
-
-        <select name="vars" id="vars">
-        <option value="total-migrated">Number of People Migrated from New York</option>
-        <option value="residence">Different State of Residence 1 Year Ago</option>
-        <option value="age">Median Age Living in State</option>
-        <option value="pop-65">Percent of Population 65+ Years Old</option>
-        <option value="education">Percent of 25+ Years Old Population with Bachelor's Degree or Higher</option>
-        <option value="healthcare">Percent without Healthcare Coverage</option>
-        <option value="households">Percent of Households with One or More People Under 18 Years</option>
-        <option value="employment">Civilian Employment Rate</option>
-        </select>
 
         <script>
             const colorScale = d3.scaleOrdinal()
@@ -43,9 +32,20 @@
                 });
             });
         </script>
-
-        <h2>Bar Chart</h2>
-        <div id="chart2"></div>
+        <div id="chart2" class="display-container">
+            <h2>Bar Chart</h2>
+            <label for="vars">Select a variable:</label>
+            <select name="vars" id="vars">
+                <option value="total-migrated">Number of People Migrated from New York</option>
+                <option value="residence">Different State of Residence 1 Year Ago</option>
+                <option value="age">Median Age Living in State</option>
+                <option value="pop-65">Percent of Population 65+ Years Old</option>
+                <option value="education">Percent of 25+ Years Old Population with Bachelor's Degree or Higher</option>
+                <option value="healthcare">Percent without Healthcare Coverage</option>
+                <option value="households">Percent of Households with One or More People Under 18 Years</option>
+                <option value="employment">Civilian Employment Rate</option>
+                </select>
+        </div>
         <script>
             var parsedData;
             var dataset;
@@ -104,8 +104,8 @@
                 }
             });
 
-            const width = 1000, height = 500;
-            const margin = { top: 20, bottom: 50, right: 20, left: 80};
+            const width = 700, height = 300;
+            const margin = { top: 30, bottom: 50, right: 0, left: 80};
 
             const svgBar = d3.select("#chart2")
                     .append("svg")
@@ -130,8 +130,8 @@
 
             const xLabel = svgBar.append("text")
                     .attr("class", "x-axis-label")
-                    .attr("x", width / 2)
-                    .attr("y", height - 10);
+                    .attr("x", width / 2 - 50)
+                    .attr("y", height - 20);
 
             const yLabel = svgBar.append("text")
                     .attr("class", "y-axis-label")
@@ -209,12 +209,13 @@
             }
         </script>
 
-        <h2>Biplot</h2>
-        <div id="biplot"></div>
+        <div id="biplot" class="display-container">
+            <h2>Biplot</h2>
+        </div>
         <script>
             const margin3 = {top: 10, right: 100, bottom: 40, left: 50},
-            width3 = 700 - margin3.left - margin3.right,
-            height3 = 500 - margin3.top - margin3.bottom;
+            width3 = 350 - margin3.left - margin3.right,
+            height3 = 250 - margin3.top - margin3.bottom;
 
             const svg1 = d3.select("#biplot")
                 .append("svg")
@@ -405,12 +406,14 @@
             }
         </script>
 
-        <h2>MDS Data</h2>
-        <div id="mds-euclidean"></div>
+        
+        <div id="mds-euclidean" class="display-container">
+            <h2>MDS Data</h2>
+        </div>
         <script>
             const margin1 = {top: 10, right: 30, bottom: 40, left: 50},
-            width1 = 600 - margin1.left - margin1.right,
-            height1 = 500 - margin1.top - margin1.bottom;
+            width1 = 300 - margin1.left - margin1.right,
+            height1 = 250 - margin1.top - margin1.bottom;
 
             const svg = d3.select("#mds-euclidean")
                 .append("svg")
@@ -489,12 +492,14 @@
             }
         </script>
 
-        <h2>Parallel Coordinate Display</h2>
-        <div id="parallel-coords"></div>
+        
+        <div id="parallel-coords" class="display-container">
+            <h2>Parallel Coordinate Display</h2>
+        </div>
         <script>
             const margin2 = {top: 175, right: 90, bottom: 30, left: 0},
-            width2 = 600 - margin2.left - margin2.right,
-            height2 = 750 - margin2.top - margin2.bottom;
+            width2 = 300 - margin2.left - margin2.right,
+            height2 = 375 - margin2.top - margin2.bottom;
 
             const svg2 = d3.select("#parallel-coords")
                     .append("svg")
