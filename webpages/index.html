@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Project #4</title>
+        <link rel="stylesheet" href="stylesheet.css">
+    </head>
+    <body>
+        <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+        <script>
+            const sheet_data = d3.csv("https://raw.githubusercontent.com/Isabella-Misanes/cse-332-datasets/main/Lab%201%20Spreadsheet%20-%20People%20Moving%20out%20of%20NY.csv");
+        </script>
+
+        <div class="header">
+            <h1>PROJECT #4</h1>
+            <h3>Isabella Misanes</h3>
+        </div>        
+
+        <label for="vars">Select a variable:</label>
+
+        <select name="vars" id="vars">
+        <option value="total-migrated">Number of People Migrated from New York</option>
+        <option value="residence">Different State of Residence 1 Year Ago</option>
+        <option value="age">Median Age Living in State</option>
+        <option value="pop-65">Percent of Population 65+ Years Old</option>
+        <option value="education">Percent of 25+ Years Old Population with Bachelor's Degree or Higher</option>
+        <option value="healthcare">Percent without Healthcare Coverage</option>
+        <option value="households">Percent of Households with One or More People Under 18 Years</option>
+        <option value="employment">Civilian Employment Rate</option>
+        </select>
+
+        <script>
+            const colorScale = d3.scaleOrdinal()
+                .range(["#f50a14", "#ff7700", "#ffd700", "#ecff00", "#a3ff00", "#53ff00", "#00ff64", "#00ffce", "#00daff", "#009dff", "#0070ff", "#003bff", "#1e00ff", "#8500ff", "#c600ff", "#ff00ee", "#ff00a4", "#c3433c", "#c2803d", "#c0b93f", "#80c33c", "#3cc347", "#46b9a4", "#467cb9", "#4842bd", "#8742bd", "#b54a94", "#f5a1a0", "#f5d2af", "#f4f0a9", "#d5f2ad", "#b8f0b2", "#b6eccf", "#cbeaef", "#c5ceed", "#d8c6ee", "#e4beeb", "#edbed6", "#a80200", "#9b4b00", "#978800", "#528d00", "#089900", "#008b64", "#0081a0", "#0033a2", "#04009f", "#3e0091", "#86009b", "#848484", "#000000"]);
+
+            const clusterColors = d3.scaleOrdinal()
+                .range(["#21c85d", "red", "purple"]);
+            
+            const clusterPoints = []
+
+            d3.csv("https://raw.githubusercontent.com/Isabella-Misanes/cse-332-datasets/main/mds_data_clusters.csv").then(function(data) {
+                data.forEach((entry) => {
+                    clusterPoints.push(entry);
+                });
+            });
+        </script>
+
+        <h2>Bar Chart</h2>
+        <div id="chart2"></div>
+        <script>
+            var parsedData;
+            var dataset;
+            const data2021 = [];
+            const data2011 = [];
+            const selectedPoints = [];
+            
+            async function loadCSV() {
+                try {
+                    const response = await fetch("https://raw.githubusercontent.com/Isabella-Misanes/cse-332-datasets/main/Lab%201%20Spreadsheet%20-%20People%20Moving%20out%20of%20NY.csv");
+                    const data = await response.text();
+                    parsedData = d3.csvParse(data);
+
+                    parsedData.forEach((entry) => {
+                            if(entry.Year === '2021') data2021.push(entry);
+                            else if(entry.Year === '2011') data2011.push(entry);
+                    });
+
+                    dataset = data2011;
+
+                    update(dataset, "New U.S. State of Residence", "Number of People Migrated from New York");
+
+                } catch(error) {
+                    console.error("Error loading CSV data:", error);
+                }
+            }
+            loadCSV();
+
+            let select = document.querySelector('select');
+
+            select.addEventListener('change', () => {
+                let selectVal = select.value;
+                if(selectVal == "total-migrated") {
+                    update(data2011, "New U.S. State of Residence", "Number of People Migrated from New York");
+                }
+                else if(selectVal == "residence") {
+                    update(data2011, "New U.S. State of Residence", "Population with Different State of Residence 1 Year Ago");
+                }
+                else if(selectVal == "age") {
+                    update(data2011, "New U.S. State of Residence", "Median Age Living in State (Years)");
+                }
+                else if(selectVal == "pop-65") {
+                    update(data2011, "New U.S. State of Residence", "Population 65+ Years Old (%)");
+                }
+                else if(selectVal == "education") {
+                    update(data2011, "New U.S. State of Residence", "25+ Years Old Population with Bachelor's Degree or Higher (%)");
+                }
+                else if(selectVal == "healthcare") {
+                    update(data2011, "New U.S. State of Residence", "No Healthcare Coverage (%)");
+                }
+                else if(selectVal == "households") {
+                    update(data2011, "New U.S. State of Residence", "Households with One or More People Under 18 Years (%)");   
+                }
+                else if(selectVal == "employment") {
+                    update(data2011, "New U.S. State of Residence", "Civilian Employment Rate (%)");
+                }
+            });
+
+            const width = 1000, height = 500;
+            const margin = { top: 20, bottom: 50, right: 20, left: 80};
+
+            const svgBar = d3.select("#chart2")
+                    .append("svg")
+                    .attr("width", width)
+                    .attr("height", height)
+
+            const xRange = [margin.left, width - margin.right];
+            const yRange = [height - margin.bottom, margin.top];
+
+            const xScale = d3.scaleBand()
+                    .range(xRange)
+                    .padding(0.1);
+
+            const yScale = d3.scaleLinear()
+                    .range(yRange);
+
+            const xAxis = svgBar.append("g")
+                    .attr("transform", `translate(0,${height - margin.bottom})`);
+
+            const yAxis = svgBar.append("g")
+                    .attr("transform", `translate(${margin.left},0)`);
+
+            const xLabel = svgBar.append("text")
+                    .attr("class", "x-axis-label")
+                    .attr("x", width / 2)
+                    .attr("y", height - 10);
+
+            const yLabel = svgBar.append("text")
+                    .attr("class", "y-axis-label")
+                    .attr("transform", "rotate(270)")
+                    .attr("x", -height + height/8)
+                    .attr("y", 30);
+
+            const chartTitle = svgBar.append("text")
+                    .attr("class", "chart-title")
+                    .attr("text-anchor", "middle")
+                    .attr("x", width/2)
+                    .attr("y", 20);
+
+            function update(data, xValue, yValue) {
+                
+                    const X = d3.map(data, d => d[xValue]);
+                    const Y = d3.map(data, d => d[yValue]);
+
+                    xScale.domain(d3.map(data, d => d[xValue]));
+                    yScale.domain([0, d3.max(data, d => parseInt(d[yValue])) + 0.05*d3.max(data, d => parseInt(d[yValue]))]);
+
+                    // Create axes
+                    xAxis.call(d3.axisBottom(xScale));
+                    yAxis.call(d3.axisLeft(yScale));
+
+                    xLabel.text(xValue);
+                    yLabel.text(yValue);
+                    chartTitle.text(xValue+" vs. "+yValue+" in 2021");
+
+                    var bars = svgBar.selectAll("rect")
+                        .data(data);
+                    
+                    bars
+                        .enter()
+                        .append("rect")
+                        .attr("x", (d, i) => xScale(X[i]))
+                        .attr("y", height - margin.bottom)
+                        .attr("width", xScale.bandwidth())
+                        .attr("height", 0)
+                        .attr("fill", "#69b3a2")
+                        .merge(bars)
+                        .on("mouseover", function (d, i) {
+                            if (!d3.select(this).classed("clicked")) {
+                                d3.select(this).attr("fill", "orange");
+                            }
+                        })
+                        .on("mouseout", function (d, i) {
+                            if (!d3.select(this).classed("clicked")) {
+                                d3.select(this).attr("fill", "#69b3a2");
+                            }
+                        })
+                        .on("click", function (d, i) {
+                            var clicked = d3.select(this).classed("clicked");
+                            d3.select(this).classed("clicked", !clicked);
+                            var indexInTable = data.indexOf(i);
+                            if(!clicked) {
+                                selectedPoints.push(indexInTable);
+                            }
+                            else {
+                                var index = selectedPoints.indexOf(indexInTable);
+                                selectedPoints.splice(index, 1);
+                            }
+                            updateBiplot();
+                            updateMDS();
+                            updatePCD();
+                            var newColor = clicked ? "#69b3a2" : colorScale(indexInTable);
+                            d3.select(this).attr("fill", newColor);
+                        })
+                        .transition()
+                        .duration(1000)
+                        .attr("y", (d, i) => yScale(Y[i]))
+                        .attr("height", (d, i) => yScale(0) - yScale(Y[i]));
+
+                    bars.exit().remove();
+            }
+        </script>
+
+        <h2>Biplot</h2>
+        <div id="biplot"></div>
+        <script>
+            const margin3 = {top: 10, right: 100, bottom: 40, left: 50},
+            width3 = 700 - margin3.left - margin3.right,
+            height3 = 500 - margin3.top - margin3.bottom;
+
+            const svg1 = d3.select("#biplot")
+                .append("svg")
+                .attr("width", width3 + margin3.left + margin3.right)
+                .attr("height", height3 + margin3.top + margin3.bottom)
+                .append("g")
+                .attr("transform", `translate(${margin3.left}, ${margin3.top})`);
+
+            const markerBoxWidth = 20;
+            const markerBoxHeight = 20;
+            const arrowPoints = [[0, 0], [0, 20], [20, 10]];
+
+            svg1
+                .append("defs")
+                .append("marker")
+                .attr("id", "arrow")
+                .attr("viewBox", [0, 0, markerBoxWidth, markerBoxHeight])
+                .attr("refX", markerBoxWidth / 2)
+                .attr("refY", markerBoxHeight / 2)
+                .attr("markerWidth", markerBoxWidth / 3)
+                .attr("markerHeight", markerBoxHeight / 3)
+                .attr("orient", "auto")
+                .append("path")
+                .attr("d", d3.line()(arrowPoints))
+                .style("stroke", "black");
+
+            const scale = 600;
+
+            const pcaVectors = [
+                [ 0.08473819, 0.30312176, -0.46611229, -0.44528953, -0.15167244, 0.45731303, 0.48953383, -0.11666236],
+                [ 0.39154528, 0.35239692, 0.33912484, 0.40022828, -0.33327356, 0.26919115, -0.07484967, -0.50811687]];
+            
+            const labels = [
+                "Number of People Migrated from New York", "Population with Different State of Residence 1 Year Ago", "Median Age Living in State (Years)", "Population 65+ Years Old (%)", "25+ Years Old Population with Bachelor's Degree or Higher (%)", "No Healthcare Coverage (%)", "Households with One or More People Under 18 Years (%)", "Civilian Employment Rate (%)"
+            ];
+
+            const originalAxes = [
+                [0.08473819, 0.39154528],
+                [0.30312176, 0.35239692],
+                [-0.46611229, 0.33912484],
+                [-0.44528953, 0.40022828],
+                [-0.15167244, -0.33327356],
+                [0.45731303, 0.26919115],
+                [0.48953383, -0.07484967],
+                [-0.11666236, -0.50811687]
+            ];
+
+            const projectedOriginalAxes = originalAxes.map(axis => [
+                axis[0] * pcaVectors[0][0] + axis[1] * pcaVectors[1][0],
+                axis[0] * pcaVectors[0][1] + axis[1] * pcaVectors[1][1],
+            ]);
+
+            svg1.selectAll("line.original-axis")
+                .data(projectedOriginalAxes)
+                .enter()
+                .append("line")
+                .attr("x1", width3 / 2)
+                .attr("y1", height3 / 2)
+                .attr("x2", (d) => (width3 / 2) + (d[0] * scale))
+                .attr("y2", (d) => (height3 / 2) - (d[1] * scale))
+                .attr("stroke", "black")
+                .attr("stroke-width", 2)
+                .attr('marker-end', 'url(#arrow)')
+                .attr("class", "projected-arrow");
+
+            svg1.selectAll("text")
+                .data(projectedOriginalAxes)
+                .enter()
+                .append("text")
+                .text((d, i) => labels[i])
+                .attr("x", (d, i) => (width3 / 2) + (d[0] * scale) + 5)
+                .attr("y", (d, i) => (height3 / 2) - (d[1] * scale) - 5)
+                .attr("text-anchor", "start")
+                .attr("class", "biplot-label");
+
+            svg1.selectAll("line.pca-vector")
+                .data(pcaVectors)
+                .enter()
+                .append("line")
+                .attr("x1", width3 / 2)
+                .attr("y1", height3 / 2)
+                .attr("x2", (d, i) => (width3 / 2) + (d[0] * scale))
+                .attr("y2", (d, i) => (height3 / 2) - (d[1] * scale))
+                .attr("stroke", "red")
+                .attr("stroke-width", 2)
+                .attr('marker-end', 'url(#arrow)')
+                .attr("class", "pca-arrow");
+
+            svg1.selectAll("text.pca-vector-label")
+                .data(pcaVectors)
+                .enter()
+                .append("text")
+                .text(function(d,i) {
+                    if(i == 0) return "PC1"
+                    else return "PC2"
+                })
+                .attr("x", (d, i) => (width3 / 2) + (d[0] * scale) + 5)
+                .attr("y", (d, i) => (height3 / 2) - (d[1] * scale) - 5)
+                .attr("text-anchor", "start")
+                .attr("class", "pca-label");
+
+            d3.csv("https://raw.githubusercontent.com/Isabella-Misanes/cse-332-datasets/main/points.csv").then(function(data) {
+                const xScale = d3.scaleLinear()
+                    .domain([-3.5, 5])
+                    .range([0, width3]);
+
+                const yScale = d3.scaleLinear()
+                    .domain([-3.5, 6])
+                    .range([height3, 0]);
+
+                const xAxis = d3.axisBottom(xScale);
+                const yAxis = d3.axisLeft(yScale);
+
+                svg1.append("g")
+                    .attr("class", "x-axis")
+                    .attr("transform", `translate(0, ${height3})`)
+                    .call(xAxis);
+
+                svg1.append("g")
+                    .attr("class", "y-axis")
+                    .call(yAxis);
+
+                svg1.append("text")
+                    .attr("text-anchor", "start")
+                    .attr("x", width3 / 2)
+                    .attr("y", height3 + 40)
+                    .text("PC1");
+
+                svg1.append("text")
+                    .attr("text-anchor", "start")
+                    .attr("transform", "rotate(270)")
+                    .attr("x", -height3/2)
+                    .attr("y", -30)
+                    .text("PC2");
+
+                svg1
+                    .selectAll(".x-axis text")
+                    .style("font-size", "12px");
+
+                svg1
+                    .selectAll(".y-axis text")
+                    .style("font-size", "12px");
+                    
+                const x = d3.scaleLinear()
+                    .domain(d3.extent(data, d => +d.PC1))
+                    .range([0, width3]);
+
+                const y = d3.scaleLinear()
+                    .domain(d3.extent(data, d => +d.PC2))
+                    .range([height3, 0]);
+
+                svg1.append('g')
+                    .selectAll("dot")
+                    .data(data)
+                    .join("circle")
+                    .attr("cx", d => x(+d.PC1))
+                    .attr("cy", d => y(+d.PC2))
+                    .attr("r", 1.5)
+                    .style("fill", function(d,i) {
+                        return clusterColors(clusterPoints[i].cluster);
+                    });
+            });
+
+            function updateBiplot() {
+                d3.csv("https://raw.githubusercontent.com/Isabella-Misanes/cse-332-datasets/main/points.csv").then(function(data) {
+                    svg1.selectAll("circle")
+                    .data(data)
+                    .attr("r", function(d,i) {
+                        if(selectedPoints.includes(i)) {
+                            return 3;
+                        }
+                        else {
+                            return 1.5;
+                        }
+                    })
+                    .style("fill", function(d,i) {
+                        if(selectedPoints == 0) {
+                            return clusterColors(clusterPoints[i].cluster);
+                        }
+                        else if(selectedPoints.includes(i)) {
+                            return colorScale(i);
+                        }
+                        else {
+                            return "gray";
+                        }
+                    });
+                });
+            }
+        </script>
+
+        <h2>MDS Data</h2>
+        <div id="mds-euclidean"></div>
+        <script>
+            const margin1 = {top: 10, right: 30, bottom: 40, left: 50},
+            width1 = 600 - margin1.left - margin1.right,
+            height1 = 500 - margin1.top - margin1.bottom;
+
+            const svg = d3.select("#mds-euclidean")
+                .append("svg")
+                .attr("width", width1 + margin1.left + margin1.right)
+                .attr("height", height1 + margin1.top + margin1.bottom);
+            
+            const xScale1 = d3.scaleLinear()
+                .domain([-6, 7])
+                .range([0, width1]);
+
+            const yScale1 = d3.scaleLinear()
+                .domain([-6, 4])
+                .range([height1, margin1.top]);
+
+            const xAxis1 = d3.axisBottom(xScale1);
+            const yAxis1 = d3.axisLeft(yScale1);
+
+            svg.append("g")
+                .attr("class", "x-axis")
+                .attr("transform", `translate(${margin1.left}, ${height1})`)
+                .call(xAxis1);
+
+            svg.append("g")
+                .attr("class", "y-axis")
+                .attr("transform", `translate(${margin1.left}, 0)`)
+                .call(yAxis1);
+
+            svg
+                .selectAll(".x-axis text")
+                .style("font-size", "12px");
+
+            svg
+                .selectAll(".y-axis text")
+                .style("font-size", "12px");
+
+            const scatterplot = svg.append("g")
+                .attr("transform", `translate(${margin1.left}, ${margin1.top})`);
+
+            d3.csv("https://raw.githubusercontent.com/Isabella-Misanes/cse-332-datasets/main/mds_data_clusters.csv").then(function(data) {
+                scatterplot.selectAll("circle")
+                    .data(data)
+                    .enter()
+                    .append("circle")
+                    .attr("cx", d => xScale1(d.X))
+                    .attr("cy", d => yScale1(d.Y) - margin1.top)
+                    .attr("r", 1.5)
+                    .style("fill", function(d) {
+                        return clusterColors(d.cluster);
+                    });
+            });
+
+            function updateMDS() {
+                d3.csv("https://raw.githubusercontent.com/Isabella-Misanes/cse-332-datasets/main/mds_data_clusters.csv").then(function(data) {
+                    scatterplot.selectAll("circle")
+                    .data(data)
+                    .attr("r", function(d,i) {
+                        if(selectedPoints.includes(i)) {
+                            return 3;
+                        }
+                        else {
+                            return 1.5;
+                        }
+                    })
+                    .style("fill", function(d,i) {
+                        if(selectedPoints.length == 0) {
+                            return clusterColors(d.cluster);
+                        }
+                        else if(selectedPoints.includes(i)) {
+                            return colorScale(i);
+                        }
+                        else {
+                            return "gray";
+                        }
+                    });
+                });
+            }
+        </script>
+
+        <h2>Parallel Coordinate Display</h2>
+        <div id="parallel-coords"></div>
+        <script>
+            const margin2 = {top: 175, right: 90, bottom: 30, left: 0},
+            width2 = 600 - margin2.left - margin2.right,
+            height2 = 750 - margin2.top - margin2.bottom;
+
+            const svg2 = d3.select("#parallel-coords")
+                    .append("svg")
+                    .attr("width", width2 + margin2.left + margin2.right)
+                    .attr("height", height2 + margin2.top + margin2.bottom)
+                    .append("g")
+                    .attr("transform", `translate(${margin2.left}, ${margin2.top})`);
+
+            d3.csv("https://raw.githubusercontent.com/Isabella-Misanes/cse-332-datasets/main/Lab%201%20Spreadsheet%20-%202011.csv").then(function(data) {
+
+                data = data.map(d => {
+                    delete d["New U.S. State of Residence"];
+                    delete d["Year"];
+                    [d["Number of People Migrated from New York"], d["Population with Different State of Residence 1 Year Ago"], d["Median Age Living in State (Years)"], d["Population 65+ Years Old (%)"], d["25+ Years Old Population with Bachelor's Degree or Higher (%)"], d["No Healthcare Coverage (%)"], d["Households with One or More People Under 18 Years (%)"], d["Civilian Employment Rate (%)"],] = [d["Median Age Living in State (Years)"], d["Population 65+ Years Old (%)"], d["Households with One or More People Under 18 Years (%)"], d["No Healthcare Coverage (%)"], d["25+ Years Old Population with Bachelor's Degree or Higher (%)"], d["Civilian Employment Rate (%)"], d["Population with Different State of Residence 1 Year Ago"], d["Number of People Migrated from New York"],];
+                    return d;
+                });
+
+                const keys = Object.keys(data[0]);
+
+                const y = {}
+                keys.forEach(key => {
+                    y[key] = d3.scaleLinear()
+                        .domain([0, d3.max(data, d => +d[key])])
+                        .range([height2, 0])
+                });
+
+                x = d3.scalePoint()
+                    .range([0, width2])
+                    .padding(1)
+                    .domain(keys);
+
+                function path(d) {
+                    return d3.line()(keys.map(function(p) { return [x(p), y[p](d[p])]; }));
+                }
+
+                const line = d3.line()
+                    .x(d => x(d))
+                    .y(key => y[key]);
+
+                svg2.selectAll("path")
+                    .data(data)
+                    .join("path")
+                    .attr("d",  path)
+                    .style("fill", "none")
+                    .style("stroke", function(d,i) {
+                        return clusterColors(clusterPoints[i].cluster);
+                    })
+                    .style("opacity", 0.5)
+
+                svg2.selectAll("axis")
+                    .data(keys)
+                    .enter().append("g")
+                    .attr("transform", function(d) { return "translate(" + x(d) + ")"; })
+                    .each(function(d) { d3.select(this).call(d3.axisLeft().scale(y[d])); })
+                    .append("text")
+                    .style("text-anchor", "start")
+                    .attr("transform", "rotate(-35) translate(-5, 0)")
+                    .attr("y", -9)
+                    .text(function(d) {
+                        if(d === "Number of People Migrated from New York") return "Median Age Living in State (Years)";
+                        else if(d === "Population with Different State of Residence 1 Year Ago") return "Population 65+ Years Old (%)";
+                        else if(d === "Median Age Living in State (Years)") return "Households with One or More People Under 18 Years (%)";
+                        else if(d === "Population 65+ Years Old (%)") return "No Healthcare Coverage (%)";
+                        else if(d === "25+ Years Old Population with Bachelor's Degree or Higher (%)") return "25+ Years Old Population with Bachelor's Degree or Higher (%)";
+                        else if(d === "No Healthcare Coverage (%)") return "Civilian Employment Rate (%)";
+                        else if(d === "Households with One or More People Under 18 Years (%)") return "Population with Different State of Residence 1 Year Ago";
+                        else if(d === "Civilian Employment Rate (%)") return "Number of People Migrated from New York";
+                        return d; 
+                    })
+                    .style("fill", "black");
+            });
+
+            function updatePCD() {
+                d3.csv("https://raw.githubusercontent.com/Isabella-Misanes/cse-332-datasets/main/Lab%201%20Spreadsheet%20-%202011.csv").then(function(data) {
+                    svg2.selectAll("path")
+                    .data(data)
+                    .style("opacity", function(d,i) {
+                        if(selectedPoints.includes(i)) {
+                            return 1;
+                        }
+                        else {
+                            return 0.5;
+                        }
+                    })
+                    .style("stroke", function(d,i) {
+                        if(selectedPoints.length == 0) {
+                            return clusterColors(clusterPoints[i].cluster);
+                        }
+                        else if(selectedPoints.includes(i)) {
+                            return colorScale(i);
+                        }
+                        else {
+                            return "gray";
+                        }
+                    });
+                });
+            }
+        </script>
+    </body>
+</html>

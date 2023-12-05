@@ -1,0 +1,27 @@
+.chart-title {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.x-axis-text {
+    transform-origin: 0 0;
+    transform: rotate(-90deg);
+}
+
+text.biplot-label {
+    font-size: 12px;
+    fill: black;
+  }
+
+text.pca-label {
+    font-size: 20px;
+    fill: red;
+}
+
+path.pca-arrow {
+    stroke: red;
+}  
+
+path.projected-arrow {
+    stroke: black;
+}  
