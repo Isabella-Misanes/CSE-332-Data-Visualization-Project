@@ -208,89 +208,46 @@
             }
         </script>
 
-        <div id="mds-euclidean" class="display-container">
-            <strong>MDS Data</strong><br>
+        <div id="grid-map" class="display-container">
+            <strong>Grid Map</strong><br>
         </div>
         <script>
-            const margin1 = {top: 10, right: 30, bottom: 40, left: 50},
-            width1 = 300 - margin1.left - margin1.right,
-            height1 = 250 - margin1.top - margin1.bottom;
+            const width1 = 800, height1 = 350;
 
-            const svg = d3.select("#mds-euclidean")
+            const svg = d3.select("#grid-map")
                 .append("svg")
-                .attr("width", width1 + margin1.left + margin1.right)
-                .attr("height", height1 + margin1.top + margin1.bottom);
+                .attr("width", width1)
+                .attr("height", height1);
             
-            const xScale1 = d3.scaleLinear()
-                .domain([-6, 7])
-                .range([0, width1]);
-
-            const yScale1 = d3.scaleLinear()
-                .domain([-6, 4])
-                .range([height1, margin1.top]);
-
-            const xAxis1 = d3.axisBottom(xScale1);
-            const yAxis1 = d3.axisLeft(yScale1);
-
-            svg.append("g")
-                .attr("class", "x-axis")
-                .attr("transform", `translate(${margin1.left}, ${height1})`)
-                .call(xAxis1);
-
-            svg.append("g")
-                .attr("class", "y-axis")
-                .attr("transform", `translate(${margin1.left}, 0)`)
-                .call(yAxis1);
-
-            svg
-                .selectAll(".x-axis text")
-                .style("font-size", "12px");
-
-            svg
-                .selectAll(".y-axis text")
-                .style("font-size", "12px");
-
-            const scatterplot = svg.append("g")
-                .attr("transform", `translate(${margin1.left}, ${margin1.top})`);
-
-            d3.csv("https://raw.githubusercontent.com/Isabella-Misanes/cse-332-datasets/main/mds_data_clusters.csv").then(function(data) {
-                scatterplot.selectAll("circle")
-                    .data(data)
-                    .enter()
-                    .append("circle")
-                    .attr("cx", d => xScale1(d.X))
-                    .attr("cy", d => yScale1(d.Y) - margin1.top)
-                    .attr("r", 1.5)
-                    .style("fill", function(d) {
-                        return clusterColors(d.cluster);
-                    });
-            });
-
-            function updateMDS() {
-                d3.csv("https://raw.githubusercontent.com/Isabella-Misanes/cse-332-datasets/main/mds_data_clusters.csv").then(function(data) {
-                    scatterplot.selectAll("circle")
-                    .data(data)
-                    .attr("r", function(d,i) {
-                        if(selectedPoints.includes(i)) {
-                            return 3;
-                        }
-                        else {
-                            return 1.5;
-                        }
-                    })
-                    .style("fill", function(d,i) {
-                        if(selectedPoints.length == 0) {
-                            return clusterColors(d.cluster);
-                        }
-                        else if(selectedPoints.includes(i)) {
-                            return colorScale(i);
-                        }
-                        else {
-                            return "gray";
-                        }
-                    });
-                });
-            }
+            const mapLocation = d3.geoMercator()
+                .scale(475)
+                .translate([width1 + 400, height1 + 225]);
+            
+            const outline = d3.geoPath()
+                .projection(mapLocation)
+            
+            // U.S. GeoJSON data (not sourced by me) to fit in grid map format
+            d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/us_states_hexgrid.geojson.json").then(function(data) {
+                svg.append("g")
+                    .selectAll("path")
+                    .data(data.features)
+                    .join("path")
+                        .attr("fill", "#69b3a2")
+                        .attr("d", outline)
+                        .attr("stroke", "white")
+                
+                svg.append("g")
+                    .selectAll("labels")
+                    .data(data.features)
+                    .join("text")
+                    .attr("x", function(d){return outline.centroid(d)[0]})
+                    .attr("y", function(d){return outline.centroid(d)[1]})
+                    .text(function(d){ return d.properties.iso3166_2})
+                    .attr("text-anchor", "middle")
+                    .attr("alignment-baseline", "central")
+                    .style("font-size", 11)
+                    .style("fill", "white")
+                })
         </script>
 
         <div id="scatterplot" class="display-container">
