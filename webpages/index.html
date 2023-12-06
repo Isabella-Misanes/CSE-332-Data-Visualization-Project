@@ -33,7 +33,7 @@
             });
         </script>
         <div id="chart2" class="display-container">
-            <h2>Bar Chart</h2>
+            <strong>Bar Chart</strong><br>
             <label for="vars">Select a variable:</label>
             <select name="vars" id="vars">
                 <option value="total-migrated">Number of People Migrated from New York</option>
@@ -104,7 +104,7 @@
                 }
             });
 
-            const width = 700, height = 300;
+            const width = 700, height = 350;
             const margin = { top: 30, bottom: 50, right: 0, left: 80};
 
             const svgBar = d3.select("#chart2")
@@ -194,7 +194,6 @@
                                 var index = selectedPoints.indexOf(indexInTable);
                                 selectedPoints.splice(index, 1);
                             }
-                            updateBiplot();
                             updateMDS();
                             updatePCD();
                             var newColor = clicked ? "#69b3a2" : colorScale(indexInTable);
@@ -209,206 +208,8 @@
             }
         </script>
 
-        <div id="biplot" class="display-container">
-            <h2>Biplot</h2>
-        </div>
-        <script>
-            const margin3 = {top: 10, right: 100, bottom: 40, left: 50},
-            width3 = 350 - margin3.left - margin3.right,
-            height3 = 250 - margin3.top - margin3.bottom;
-
-            const svg1 = d3.select("#biplot")
-                .append("svg")
-                .attr("width", width3 + margin3.left + margin3.right)
-                .attr("height", height3 + margin3.top + margin3.bottom)
-                .append("g")
-                .attr("transform", `translate(${margin3.left}, ${margin3.top})`);
-
-            const markerBoxWidth = 20;
-            const markerBoxHeight = 20;
-            const arrowPoints = [[0, 0], [0, 20], [20, 10]];
-
-            svg1
-                .append("defs")
-                .append("marker")
-                .attr("id", "arrow")
-                .attr("viewBox", [0, 0, markerBoxWidth, markerBoxHeight])
-                .attr("refX", markerBoxWidth / 2)
-                .attr("refY", markerBoxHeight / 2)
-                .attr("markerWidth", markerBoxWidth / 3)
-                .attr("markerHeight", markerBoxHeight / 3)
-                .attr("orient", "auto")
-                .append("path")
-                .attr("d", d3.line()(arrowPoints))
-                .style("stroke", "black");
-
-            const scale = 600;
-
-            const pcaVectors = [
-                [ 0.08473819, 0.30312176, -0.46611229, -0.44528953, -0.15167244, 0.45731303, 0.48953383, -0.11666236],
-                [ 0.39154528, 0.35239692, 0.33912484, 0.40022828, -0.33327356, 0.26919115, -0.07484967, -0.50811687]];
-            
-            const labels = [
-                "Number of People Migrated from New York", "Population with Different State of Residence 1 Year Ago", "Median Age Living in State (Years)", "Population 65+ Years Old (%)", "25+ Years Old Population with Bachelor's Degree or Higher (%)", "No Healthcare Coverage (%)", "Households with One or More People Under 18 Years (%)", "Civilian Employment Rate (%)"
-            ];
-
-            const originalAxes = [
-                [0.08473819, 0.39154528],
-                [0.30312176, 0.35239692],
-                [-0.46611229, 0.33912484],
-                [-0.44528953, 0.40022828],
-                [-0.15167244, -0.33327356],
-                [0.45731303, 0.26919115],
-                [0.48953383, -0.07484967],
-                [-0.11666236, -0.50811687]
-            ];
-
-            const projectedOriginalAxes = originalAxes.map(axis => [
-                axis[0] * pcaVectors[0][0] + axis[1] * pcaVectors[1][0],
-                axis[0] * pcaVectors[0][1] + axis[1] * pcaVectors[1][1],
-            ]);
-
-            svg1.selectAll("line.original-axis")
-                .data(projectedOriginalAxes)
-                .enter()
-                .append("line")
-                .attr("x1", width3 / 2)
-                .attr("y1", height3 / 2)
-                .attr("x2", (d) => (width3 / 2) + (d[0] * scale))
-                .attr("y2", (d) => (height3 / 2) - (d[1] * scale))
-                .attr("stroke", "black")
-                .attr("stroke-width", 2)
-                .attr('marker-end', 'url(#arrow)')
-                .attr("class", "projected-arrow");
-
-            svg1.selectAll("text")
-                .data(projectedOriginalAxes)
-                .enter()
-                .append("text")
-                .text((d, i) => labels[i])
-                .attr("x", (d, i) => (width3 / 2) + (d[0] * scale) + 5)
-                .attr("y", (d, i) => (height3 / 2) - (d[1] * scale) - 5)
-                .attr("text-anchor", "start")
-                .attr("class", "biplot-label");
-
-            svg1.selectAll("line.pca-vector")
-                .data(pcaVectors)
-                .enter()
-                .append("line")
-                .attr("x1", width3 / 2)
-                .attr("y1", height3 / 2)
-                .attr("x2", (d, i) => (width3 / 2) + (d[0] * scale))
-                .attr("y2", (d, i) => (height3 / 2) - (d[1] * scale))
-                .attr("stroke", "red")
-                .attr("stroke-width", 2)
-                .attr('marker-end', 'url(#arrow)')
-                .attr("class", "pca-arrow");
-
-            svg1.selectAll("text.pca-vector-label")
-                .data(pcaVectors)
-                .enter()
-                .append("text")
-                .text(function(d,i) {
-                    if(i == 0) return "PC1"
-                    else return "PC2"
-                })
-                .attr("x", (d, i) => (width3 / 2) + (d[0] * scale) + 5)
-                .attr("y", (d, i) => (height3 / 2) - (d[1] * scale) - 5)
-                .attr("text-anchor", "start")
-                .attr("class", "pca-label");
-
-            d3.csv("https://raw.githubusercontent.com/Isabella-Misanes/cse-332-datasets/main/points.csv").then(function(data) {
-                const xScale = d3.scaleLinear()
-                    .domain([-3.5, 5])
-                    .range([0, width3]);
-
-                const yScale = d3.scaleLinear()
-                    .domain([-3.5, 6])
-                    .range([height3, 0]);
-
-                const xAxis = d3.axisBottom(xScale);
-                const yAxis = d3.axisLeft(yScale);
-
-                svg1.append("g")
-                    .attr("class", "x-axis")
-                    .attr("transform", `translate(0, ${height3})`)
-                    .call(xAxis);
-
-                svg1.append("g")
-                    .attr("class", "y-axis")
-                    .call(yAxis);
-
-                svg1.append("text")
-                    .attr("text-anchor", "start")
-                    .attr("x", width3 / 2)
-                    .attr("y", height3 + 40)
-                    .text("PC1");
-
-                svg1.append("text")
-                    .attr("text-anchor", "start")
-                    .attr("transform", "rotate(270)")
-                    .attr("x", -height3/2)
-                    .attr("y", -30)
-                    .text("PC2");
-
-                svg1
-                    .selectAll(".x-axis text")
-                    .style("font-size", "12px");
-
-                svg1
-                    .selectAll(".y-axis text")
-                    .style("font-size", "12px");
-                    
-                const x = d3.scaleLinear()
-                    .domain(d3.extent(data, d => +d.PC1))
-                    .range([0, width3]);
-
-                const y = d3.scaleLinear()
-                    .domain(d3.extent(data, d => +d.PC2))
-                    .range([height3, 0]);
-
-                svg1.append('g')
-                    .selectAll("dot")
-                    .data(data)
-                    .join("circle")
-                    .attr("cx", d => x(+d.PC1))
-                    .attr("cy", d => y(+d.PC2))
-                    .attr("r", 1.5)
-                    .style("fill", function(d,i) {
-                        return clusterColors(clusterPoints[i].cluster);
-                    });
-            });
-
-            function updateBiplot() {
-                d3.csv("https://raw.githubusercontent.com/Isabella-Misanes/cse-332-datasets/main/points.csv").then(function(data) {
-                    svg1.selectAll("circle")
-                    .data(data)
-                    .attr("r", function(d,i) {
-                        if(selectedPoints.includes(i)) {
-                            return 3;
-                        }
-                        else {
-                            return 1.5;
-                        }
-                    })
-                    .style("fill", function(d,i) {
-                        if(selectedPoints == 0) {
-                            return clusterColors(clusterPoints[i].cluster);
-                        }
-                        else if(selectedPoints.includes(i)) {
-                            return colorScale(i);
-                        }
-                        else {
-                            return "gray";
-                        }
-                    });
-                });
-            }
-        </script>
-
-        
         <div id="mds-euclidean" class="display-container">
-            <h2>MDS Data</h2>
+            <strong>MDS Data</strong><br>
         </div>
         <script>
             const margin1 = {top: 10, right: 30, bottom: 40, left: 50},
@@ -492,14 +293,176 @@
             }
         </script>
 
+        <div id="scatterplot" class="display-container">
+            <strong>Scatterplot </strong><br>
+            Choose the currently-selected variable to be on which axis? 
+            <input type="radio" id="X" name="variable-select" value="X" checked="checked">
+            <label for="X">X</label>
+            <input type="radio" id="Y" name="variable-select" value="Y">
+            <label for="Y">Y</label>
+            <button type="button" id="submit">
+                Submit
+            </button><br>
+        </div>
+
+        <script>
+            var parsedData1;
+            var dataset2;
+            var selectedAttr = "Number of People Migrated from New York";
+            var currentX = "Number of People Migrated from New York";
+            var currentY = "";
+            var d21 = [];
+            var d11 = [];
+
+            async function loadCSV() {
+                try {
+                    const response = await fetch("https://raw.githubusercontent.com/Isabella-Misanes/cse-332-datasets/main/Lab%201%20Spreadsheet%20-%20People%20Moving%20out%20of%20NY.csv");
+                    const data = await response.text();
+                    parsedData1 = d3.csvParse(data);
+
+                    parsedData1.forEach((entry) => {
+                        if(entry.Year === '2021') d21.push(entry);
+                        else if(entry.Year === '2011') d11.push(entry);
+                    });
+
+                    dataset2 = [...d11];
+
+                } catch(error) {
+                    console.error("Error loading CSV data:", error);
+                }
+            }
+            loadCSV();
+
+            // Onclick event listener
+            document.getElementById('submit').onclick = function() {
+                var selected = document.querySelector('input[type=radio][name=variable-select]:checked');
+                if(selected.value == "X") {
+                    currentX = selectedAttr;
+                }
+                else if(selected.value == "Y"){
+                    currentY = selectedAttr;
+                }
+                updatePlot(dataset2, currentX, currentY);
+            }
+
+            select.addEventListener('change', () => {
+                let selectVal = select.value;
+                if(selectVal == "total-migrated") {
+                    selectedAttr = "Number of People Migrated from New York";
+                }
+                else if(selectVal == "residence") {
+                    selectedAttr = "Population with Different State of Residence 1 Year Ago";
+                }
+                else if(selectVal == "age") {
+                    selectedAttr = "Median Age Living in State (Years)";
+                }
+                else if(selectVal == "pop-65") {
+                    selectedAttr = "Population 65+ Years Old (%)";
+                }
+                else if(selectVal == "education") {
+                    selectedAttr = "25+ Years Old Population with Bachelor's Degree or Higher (%)";
+                }
+                else if(selectVal == "healthcare") {
+                    selectedAttr = "No Healthcare Coverage (%)";
+                }
+                else if(selectVal == "households") {
+                    selectedAttr = "Households with One or More People Under 18 Years (%)";
+                }
+                else if(selectVal == "employment") {
+                    selectedAttr = "Civilian Employment Rate (%)";
+                }
+            });
+
+            const width4 = 800, height4 = 300;
+            const margin3 = {top: 20, left: 50, right: 0, bottom: 40};
+
+            const svgScatter = d3.select("#scatterplot")
+                    .append("svg")
+                    .attr("width", width4)
+                    .attr("height", height4)
+
+            const legend = svgScatter.append("g")
+                    .attr("class", "legend")
+            const scatter = svgScatter.append("g")
+                    .attr("class", "scatter")
+
+            const xRange1 = [margin3.left, width4 - margin3.right - 125];
+            const yRange1 = [height4 - margin3.bottom, margin3.top];
+
+            const xScale2 = d3.scaleLinear()
+                    .range(xRange1)
+
+            const yScale2 = d3.scaleLinear()
+                    .range(yRange1);
+
+            const xAxis2 = svgScatter.append("g")
+                    .attr("transform", `translate(0,${height4 - margin3.bottom})`);
+
+            const yAxis2 = svgScatter.append("g")
+                    .attr("transform", `translate(${margin3.left},0)`);
+
+            const xLabel1 = svgScatter.append("text")
+                    .attr("class", "x-axis-label")
+                    .attr("x", width4 / 3)
+                    .attr("y", height4 - 10);
+
+            const yLabel1 = svgScatter.append("text")
+                    .attr("class", "y-axis-label")
+                    .attr("transform", "rotate(270)")
+                    .attr("x", -height4 + height4/8)
+                    .attr("y", 30);
+
+            const chartTitle2 = svgScatter.append("text")
+                    .attr("class", "chart-title")
+                    .attr("text-anchor", "middle")
+                    .attr("x", width4/2 - 40)
+                    .attr("y", 20);
+
+            function updatePlot(data, xValue, yValue) {
+                if(xValue != "" && yValue != "" && xValue != yValue) {
+                    const color1 = d3.scaleOrdinal()
+                        .domain(data.map(d => d[xValue]))
+                        .range(["#f50a14", "#ff7700", "#ffd700", "#ecff00", "#a3ff00", "#53ff00", "#00ff64", "#00ffce", "#00daff", "#009dff", "#0070ff", "#003bff", "#1e00ff", "#8500ff", "#c600ff", "#ff00ee", "#ff00a4", "#c3433c", "#c2803d", "#c0b93f", "#80c33c", "#3cc347", "#46b9a4", "#467cb9", "#4842bd", "#8742bd", "#b54a94", "#f5a1a0", "#f5d2af", "#f4f0a9", "#d5f2ad", "#b8f0b2", "#b6eccf", "#cbeaef", "#c5ceed", "#d8c6ee", "#e4beeb", "#edbed6", "#a80200", "#9b4b00", "#978800", "#528d00", "#089900", "#008b64", "#0081a0", "#0033a2", "#04009f", "#3e0091", "#86009b", "#848484", "#000000"]);
+
+                    xScale2.domain([0, d3.max(data, d => parseFloat(d[xValue]) + 0.05 * parseFloat(d[xValue]))]);
+                    yScale2.domain([0, d3.max(data, d => parseFloat(d[yValue]) + 0.05 * parseFloat(d[yValue]))]);
+
+                    // Create axes
+                    xAxis2.call(d3.axisBottom(xScale2));
+                    yAxis2.call(d3.axisLeft(yScale2));
+
+                    // axes labels
+                    xLabel1.text(xValue);
+                    yLabel1.text(yValue);
+                    chartTitle2.text(xValue+" vs. "+yValue+" in 2021");
+
+                    scatter.selectAll(".scatter-circle").remove();
+
+                    // Draw circles
+                    scatter.selectAll("scatter-circle")
+                            .data(data)
+                            .join("circle")
+                            .transition()
+                            .duration(1000)
+                            .attr("class", "scatter-circle")
+                            .attr("cx", d => xScale2(d[xValue]))
+                            .attr("cy", d => yScale2(d[yValue]))
+                            .attr("r", 2)
+                            .attr("fill", "black");
+                }
+                else {
+                    console.log("Please choose two different X and Y attributes.");
+                }
+            }
+        </script>
         
         <div id="parallel-coords" class="display-container">
-            <h2>Parallel Coordinate Display</h2>
+            <strong>Parallel Coordinate Display</strong><br>
         </div>
         <script>
-            const margin2 = {top: 175, right: 90, bottom: 30, left: 0},
-            width2 = 300 - margin2.left - margin2.right,
-            height2 = 375 - margin2.top - margin2.bottom;
+            const margin2 = {top: 80, right: 150, bottom: 80, left: -60},
+            width2 = 800 - margin2.left - margin2.right,
+            height2 = 400 - margin2.top - margin2.bottom;
 
             const svg2 = d3.select("#parallel-coords")
                     .append("svg")
@@ -556,7 +519,8 @@
                     .each(function(d) { d3.select(this).call(d3.axisLeft().scale(y[d])); })
                     .append("text")
                     .style("text-anchor", "start")
-                    .attr("transform", "rotate(-35) translate(-5, 0)")
+                    .attr("transform", "rotate(-15) translate(-5, 0)")
+                    .style("font-size", "8px")
                     .attr("y", -9)
                     .text(function(d) {
                         if(d === "Number of People Migrated from New York") return "Median Age Living in State (Years)";

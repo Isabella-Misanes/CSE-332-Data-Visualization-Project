@@ -1,5 +1,5 @@
 .chart-title {
-    font-size: 14px;
+    font-size: 12px;
     font-weight: bold;
 }
 
@@ -8,31 +8,17 @@
     transform: rotate(-90deg);
 }
 
-text.x-axis-label {
+text.-axis-label {
     font-size: 12px;
 }
 
 text.y-axis-label {
-    font-size: 12px;
+    font-size: 10px;
 }
 
-text.biplot-label {
-    font-size: 12px;
-    fill: black;
-  }
-
-text.pca-label {
-    font-size: 20px;
-    fill: red;
+text.legend-text {
+    font-size: 10px;
 }
-
-path.pca-arrow {
-    stroke: red;
-}  
-
-path.projected-arrow {
-    stroke: black;
-}  
 
 body, html {
     margin: 0;
