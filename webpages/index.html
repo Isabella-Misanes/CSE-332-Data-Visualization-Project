@@ -164,7 +164,7 @@
 
                 xLabel.text(xValue);
                 yLabel.text(yValue);
-                chartTitle.text(xValue+" vs. "+yValue+" in 2021");
+                chartTitle.text(xValue+" vs. "+yValue+" in 2011");
 
                 var bars = svgBar.selectAll("rect")
                     .data(data);
@@ -375,7 +375,7 @@
             });
 
             const width4 = 800, height4 = 300;
-            const margin3 = {top: 20, left: 50, right: 0, bottom: 40};
+            const margin3 = {top: 20, left: 80, right: 0, bottom: 40};
 
             const svgScatter = d3.select("#scatterplot")
                     .append("svg")
@@ -435,7 +435,7 @@
                     // axes labels
                     xLabel1.text(xValue);
                     yLabel1.text(yValue);
-                    chartTitle2.text(xValue+" vs. "+yValue+" in 2021");
+                    chartTitle2.text(xValue+" vs. "+yValue+" in 2011");
 
                     scatter.selectAll(".scatter-circle").remove();
 
