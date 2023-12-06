@@ -52,6 +52,7 @@
             const data2021 = [];
             const data2011 = [];
             const selectedPoints = [];
+            var isScatterplotVisible = false;
             
             async function loadCSV() {
                 try {
@@ -146,7 +147,6 @@
                     .attr("y", 20);
 
             function update(data, xValue, yValue) {
-                
                     const X = d3.map(data, d => d[xValue]);
                     const Y = d3.map(data, d => d[yValue]);
 
@@ -194,8 +194,8 @@
                                 var index = selectedPoints.indexOf(indexInTable);
                                 selectedPoints.splice(index, 1);
                             }
-                            updateMDS();
                             updatePCD();
+                            if(isScatterplotVisible) updateScatterplot();
                             var newColor = clicked ? "#69b3a2" : colorScale(indexInTable);
                             d3.select(this).attr("fill", newColor);
                         })
@@ -234,7 +234,7 @@
                     .join("path")
                         .attr("fill", "#69b3a2")
                         .attr("d", outline)
-                        .attr("stroke", "white")
+                        .attr("stroke", "white");
                 
                 svg.append("g")
                     .selectAll("labels")
@@ -246,8 +246,8 @@
                     .attr("text-anchor", "middle")
                     .attr("alignment-baseline", "central")
                     .style("font-size", 11)
-                    .style("fill", "white")
-                })
+                    .style("fill", "white");
+            });
         </script>
 
         <div id="scatterplot" class="display-container">
@@ -405,11 +405,41 @@
                             .attr("cx", d => xScale2(d[xValue]))
                             .attr("cy", d => yScale2(d[yValue]))
                             .attr("r", 2)
-                            .attr("fill", "black");
+                            .attr("fill", function(d,i) {
+                                return clusterColors(clusterPoints[i].cluster);
+                            });
+                    
+                    isScatterplotVisible = true;
                 }
                 else {
                     console.log("Please choose two different X and Y attributes.");
                 }
+            }
+
+            function updateScatterplot() {
+                d3.csv("https://raw.githubusercontent.com/Isabella-Misanes/cse-332-datasets/main/Lab%201%20Spreadsheet%20-%202011.csv").then(function(data) {
+                    scatter.selectAll("circle")
+                        .data(data)
+                        .attr("r", function(d,i) {
+                            if(selectedPoints.includes(i)) {
+                                return 3;
+                            }
+                            else {
+                                return 1.5;
+                            }
+                        })
+                        .style("fill", function(d,i) {
+                            if(selectedPoints.length == 0) {
+                                return clusterColors(clusterPoints[i].cluster);
+                            }
+                            else if(selectedPoints.includes(i)) {
+                                return colorScale(i);
+                            }
+                            else {
+                                return "gray";
+                            }
+                        });
+                });
             }
         </script>
         
