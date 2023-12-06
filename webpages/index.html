@@ -185,6 +185,7 @@
                         indexInTable = data.indexOf(i);
                         highlightedPoints = indexInTable;
                         updateGridMap(false);
+                        if(isScatterplotVisible) updateScatterplot();
                     })
                     .on("mouseout", function (d, i) {
                         if (!d3.select(this).classed("clicked")) {
@@ -195,6 +196,7 @@
                         }
                         highlightedPoints = null;
                         updateGridMap(false);
+                        if(isScatterplotVisible) updateScatterplot();
                     })
                     .on("click", function (d, i) {
                         var clicked = d3.select(this).classed("clicked");
@@ -206,7 +208,6 @@
                             var index = selectedPoints.indexOf(indexInTable);
                             selectedPoints.splice(index, 1);
                         }
-                        console.log(selectedPoints);
                         updatePCD();
                         updateGridMap(false);
                         if(isScatterplotVisible) updateScatterplot();
@@ -445,9 +446,23 @@
                             .attr("class", "scatter-circle")
                             .attr("cx", d => xScale2(d[xValue]))
                             .attr("cy", d => yScale2(d[yValue]))
-                            .attr("r", 2)
+                            .attr("r", function(d,i) {
+                                if(selectedPoints.includes(i)) {
+                                    return 3;
+                                }
+                                else {
+                                    return 1.5;
+                                }
+                            })
                             .attr("fill", function(d,i) {
-                                return clusterColors(clusterPoints[i].cluster);
+                                if(highlightedPoints == i) return "orange";
+                                else if(selectedPoints.length == 0) {
+                                    return clusterColors(clusterPoints[i].cluster);
+                                }
+                                else if(selectedPoints.includes(i)) {
+                                    return colorScale(i);
+                                }
+                                else return "gray";
                             });
                     
                     isScatterplotVisible = true;
@@ -462,7 +477,7 @@
                     scatter.selectAll("circle")
                         .data(data)
                         .attr("r", function(d,i) {
-                            if(selectedPoints.includes(i)) {
+                            if(highlightedPoints == i || selectedPoints.includes(i)) {
                                 return 3;
                             }
                             else {
@@ -470,7 +485,8 @@
                             }
                         })
                         .style("fill", function(d,i) {
-                            if(selectedPoints.length == 0) {
+                            if(highlightedPoints == i) return "orange";
+                            else if(selectedPoints.length == 0) {
                                 return clusterColors(clusterPoints[i].cluster);
                             }
                             else if(selectedPoints.includes(i)) {
