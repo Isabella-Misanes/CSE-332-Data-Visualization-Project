@@ -53,6 +53,8 @@
             const data2011 = [];
             const selectedPoints = [];
             var isScatterplotVisible = false;
+            var attribute = "Number of People Migrated from New York";
+            const geoJSONData = ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"];
             
             async function loadCSV() {
                 try {
@@ -147,64 +149,67 @@
                     .attr("y", 20);
 
             function update(data, xValue, yValue) {
-                    const X = d3.map(data, d => d[xValue]);
-                    const Y = d3.map(data, d => d[yValue]);
+                attribute = yValue;
+                const X = d3.map(data, d => d[xValue]);
+                const Y = d3.map(data, d => d[yValue]);
 
-                    xScale.domain(d3.map(data, d => d[xValue]));
-                    yScale.domain([0, d3.max(data, d => parseInt(d[yValue])) + 0.05*d3.max(data, d => parseInt(d[yValue]))]);
+                xScale.domain(d3.map(data, d => d[xValue]));
+                yScale.domain([0, d3.max(data, d => parseInt(d[yValue])) + 0.05*d3.max(data, d => parseInt(d[yValue]))]);
 
-                    // Create axes
-                    xAxis.call(d3.axisBottom(xScale));
-                    yAxis.call(d3.axisLeft(yScale));
+                // Create axes
+                xAxis.call(d3.axisBottom(xScale));
+                yAxis.call(d3.axisLeft(yScale));
 
-                    xLabel.text(xValue);
-                    yLabel.text(yValue);
-                    chartTitle.text(xValue+" vs. "+yValue+" in 2021");
+                xLabel.text(xValue);
+                yLabel.text(yValue);
+                chartTitle.text(xValue+" vs. "+yValue+" in 2021");
 
-                    var bars = svgBar.selectAll("rect")
-                        .data(data);
-                    
-                    bars
-                        .enter()
-                        .append("rect")
-                        .attr("x", (d, i) => xScale(X[i]))
-                        .attr("y", height - margin.bottom)
-                        .attr("width", xScale.bandwidth())
-                        .attr("height", 0)
-                        .attr("fill", "#69b3a2")
-                        .merge(bars)
-                        .on("mouseover", function (d, i) {
-                            if (!d3.select(this).classed("clicked")) {
-                                d3.select(this).attr("fill", "orange");
-                            }
-                        })
-                        .on("mouseout", function (d, i) {
-                            if (!d3.select(this).classed("clicked")) {
-                                d3.select(this).attr("fill", "#69b3a2");
-                            }
-                        })
-                        .on("click", function (d, i) {
-                            var clicked = d3.select(this).classed("clicked");
-                            d3.select(this).classed("clicked", !clicked);
-                            var indexInTable = data.indexOf(i);
-                            if(!clicked) {
-                                selectedPoints.push(indexInTable);
-                            }
-                            else {
-                                var index = selectedPoints.indexOf(indexInTable);
-                                selectedPoints.splice(index, 1);
-                            }
-                            updatePCD();
-                            if(isScatterplotVisible) updateScatterplot();
-                            var newColor = clicked ? "#69b3a2" : colorScale(indexInTable);
-                            d3.select(this).attr("fill", newColor);
-                        })
-                        .transition()
-                        .duration(1000)
-                        .attr("y", (d, i) => yScale(Y[i]))
-                        .attr("height", (d, i) => yScale(0) - yScale(Y[i]));
+                var bars = svgBar.selectAll("rect")
+                    .data(data);
+                
+                bars
+                    .enter()
+                    .append("rect")
+                    .attr("x", (d, i) => xScale(X[i]))
+                    .attr("y", height - margin.bottom)
+                    .attr("width", xScale.bandwidth())
+                    .attr("height", 0)
+                    .attr("fill", "#69b3a2")
+                    .merge(bars)
+                    .on("mouseover", function (d, i) {
+                        if (!d3.select(this).classed("clicked")) {
+                            d3.select(this).attr("fill", "orange");
+                        }
+                    })
+                    .on("mouseout", function (d, i) {
+                        if (!d3.select(this).classed("clicked")) {
+                            d3.select(this).attr("fill", "#69b3a2");
+                        }
+                    })
+                    .on("click", function (d, i) {
+                        var clicked = d3.select(this).classed("clicked");
+                        d3.select(this).classed("clicked", !clicked);
+                        var indexInTable = data.indexOf(i);
+                        if(!clicked) {
+                            selectedPoints.push(indexInTable);
+                        }
+                        else {
+                            var index = selectedPoints.indexOf(indexInTable);
+                            selectedPoints.splice(index, 1);
+                        }
+                        updatePCD();
+                        updateGridMap();
+                        if(isScatterplotVisible) updateScatterplot();
+                        var newColor = clicked ? "#69b3a2" : colorScale(indexInTable);
+                        d3.select(this).attr("fill", newColor);
+                    })
+                    .transition()
+                    .duration(1000)
+                    .attr("y", (d, i) => yScale(Y[i]))
+                    .attr("height", (d, i) => yScale(0) - yScale(Y[i]));
 
-                    bars.exit().remove();
+                bars.exit().remove();
+                updateGridMap();
             }
         </script>
 
@@ -225,29 +230,69 @@
             
             const outline = d3.geoPath()
                 .projection(mapLocation)
+
+            const colorScale1 = d3.scaleSequential()
+                .interpolator(d3.interpolateRgb("#ececec", "#000000"))
             
             // U.S. GeoJSON data (not sourced by me) to fit in grid map format
-            d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/us_states_hexgrid.geojson.json").then(function(data) {
+            d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/us_states_hexgrid.geojson.json").then(function(data) {                
+                colorScale1.domain([d3.min(data2011, function(d) { return +d[attribute]; }), d3.max(data2011, function(d) { return +d[attribute]; })]);
+                
                 svg.append("g")
                     .selectAll("path")
                     .data(data.features)
                     .join("path")
-                        .attr("fill", "#69b3a2")
-                        .attr("d", outline)
-                        .attr("stroke", "white");
+                    .attr("fill", function(d,i) {
+                        var indexInJSON = geoJSONData.indexOf(d.properties.iso3166_2);
+                        return colorScale1(data2011[indexInJSON][attribute]);
+                    })
+                    .attr("d", outline)
+                    .attr("stroke", "white");
                 
                 svg.append("g")
                     .selectAll("labels")
                     .data(data.features)
                     .join("text")
-                    .attr("x", function(d){return outline.centroid(d)[0]})
-                    .attr("y", function(d){return outline.centroid(d)[1]})
-                    .text(function(d){ return d.properties.iso3166_2})
+                    .attr("x", function(d) { return outline.centroid(d)[0]; })
+                    .attr("y", function(d) { return outline.centroid(d)[1]; })
+                    .text(function(d) { return d.properties.iso3166_2; })
                     .attr("text-anchor", "middle")
                     .attr("alignment-baseline", "central")
                     .style("font-size", 11)
                     .style("fill", "white");
             });
+
+            function updateGridMap() {
+                d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/us_states_hexgrid.geojson.json").then(function(data) {
+                    colorScale1.domain([d3.min(data2011, function(d) { return +d[attribute]; }), d3.max(data2011, function(d) { return +d[attribute]; })]);
+                    svg.append("g")
+                        .selectAll("path")
+                        .data(data.features)
+                        .join("path")
+                        .attr("fill", function(d,i) {
+                            var indexInJSON = geoJSONData.indexOf(d.properties.iso3166_2);
+                            if(selectedPoints.includes(indexInJSON))
+                                return colorScale(indexInJSON);
+                            else {
+                                return colorScale1(data2011[indexInJSON][attribute]);
+                            }
+                        })
+                        .attr("d", outline)
+                        .attr("stroke", "white");
+                    
+                    svg.append("g")
+                        .selectAll("labels")
+                        .data(data.features)
+                        .join("text")
+                        .attr("x", function(d){return outline.centroid(d)[0]})
+                        .attr("y", function(d){return outline.centroid(d)[1]})
+                        .text(function(d){ return d.properties.iso3166_2})
+                        .attr("text-anchor", "middle")
+                        .attr("alignment-baseline", "central")
+                        .style("font-size", 11)
+                        .style("fill", "white");
+                    });
+            }
         </script>
 
         <div id="scatterplot" class="display-container">
